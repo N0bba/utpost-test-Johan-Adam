@@ -32,7 +32,7 @@ npm run dev:client                    # Vue-klienten på :3001 med hot reload
 
 ## Struktur
 
-- `api/` – Express + Postgres (Drizzle) + MongoDB (driver). Kräver Node 22.18+ (routes skrivs i TypeScript och körs direkt av Node). `api/Dockerfile` byggs från repots rot.
+- `api/` – Express + Postgres (Drizzle) + MongoDB (driver). REST under `/api`, GraphQL på `/graphql` (`api/src/graphql/`, GraphiQL i browsern på http://localhost:4000/graphql). Kräver Node 22.18+ (routes skrivs i TypeScript och körs direkt av Node). `api/Dockerfile` byggs från repots rot.
 - `client/` – ny klient i Vue 3 + TypeScript (port 3001). `client/Dockerfile` bygger och serverar `dist/` (multi-stage kommer i M4).
 - `shared/` – API-kontraktet som TypeScript-typer (`@utpost/shared`), används av `api/` och `client/`.
 - `web/` – den gamla React-klienten. Portas vy för vy till `client/`, tas bort i M6.
