@@ -18,7 +18,7 @@ services:
       retries: 10
 
   mongo:
-    image: mongo:8
+    image: mongo:8.2 # låst till 8.2: taggarna 8, 8.0 och latest vägrar starta på ny Docker Desktop (Linux-kärna 6.19+, SERVER-121912)
     environment:
       MONGO_INITDB_ROOT_USERNAME: utpost
       MONGO_INITDB_ROOT_PASSWORD: utpost
