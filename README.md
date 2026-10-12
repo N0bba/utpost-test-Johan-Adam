@@ -25,6 +25,7 @@ npm install
 docker compose up -d postgres mongo   # bara databaserna, på 5433 och 27017
 npm run seed                          # första gången
 npm run dev:api                       # API:et på :4000, startar om vid filändring
+npm run migrate:logs                  # M5: turloggarna från Postgres till MongoDB (körs om utan dubbletter)
 npm run dev:client                    # Vue-klienten på :3001 med hot reload, /api och /graphql proxas till :4000
 ```
 
@@ -32,8 +33,8 @@ npm run dev:client                    # Vue-klienten på :3001 med hot reload, /
 
 ## Struktur
 
-- `api/` – Express + Postgres (Drizzle) + MongoDB (driver). REST under `/api`, GraphQL på `/graphql` (`api/src/graphql/`, GraphiQL i browsern på http://localhost:4000/graphql). Kräver Node 22.18+ (routes skrivs i TypeScript och körs direkt av Node). `api/Dockerfile` byggs från repots rot.
-- `client/` – ny klient i Vue 3 + TypeScript (port 3001). `client/Dockerfile` är multi-stage: Node bygger, nginx serverar (`client/nginx.conf`).
+- `api/` – Express + Postgres (Drizzle) + MongoDB (driver). REST under `/api`, GraphQL på `/graphql` (`api/src/graphql/`, GraphiQL i browsern på http://localhost:4000/graphql). Relationerna hämtas med DataLoader (`loaders.js`, M5) – en databasfråga per lista, inte per rad; varje svar säger vad det kostade i `extensions.databasfragor`. Turernas mätpunkter ligger i MongoDB sedan M5 (`npm run migrate:logs`). Kräver Node 22.18+ (routes skrivs i TypeScript och körs direkt av Node). `api/Dockerfile` byggs från repots rot.
+- `client/` – ny klient i Vue 3 + TypeScript (port 3001). GraphQL med urql (`src/urql.ts`, cache i klienten) och typer genererade ur schemat (`codegen.ts` → `src/gql/`, M5). `client/Dockerfile` är multi-stage: Node bygger, nginx serverar (`client/nginx.conf`).
 - `shared/` – API-kontraktet som TypeScript-typer (`@utpost/shared`), används av `api/` och `client/`.
 - `web/` – den gamla React-klienten. Portas vy för vy till `client/`, tas bort i M6.
 - `compose.yaml` – hela miljön. `docs/decisions/` – teamets beslutsdokument.
@@ -43,10 +44,12 @@ npm run dev:client                    # Vue-klienten på :3001 med hot reload, /
     npm run dev:client        # Vue-klienten på :3001 (API:et måste köra: npm run dev:api)
     npm run lint              # ESLint på client/
     npm run format:check      # Prettier – bara kontroll, ändrar inget
-    npm run typecheck         # vue-tsc i client/ + tsc i api/
+    npm run codegen           # typer ur GraphQL-schemat → client/src/gql/ (körs av typecheck)
+    npm run typecheck         # codegen + vue-tsc i client/ + tsc i api/ – kedjan schema → fråga → vy kontrolleras här
     npm test                  # Vitest, en gång, avslutar
     npm run build             # vite build av client/
     npm run mongo:smoke [id]  # skriver en tur ur Postgres som ett dokument i MongoDB och läser tillbaka
+    npm run migrate:logs      # alla turer med mätpunkter → MongoDB, med kontroll av antalet (M5)
 
 ## Images
 

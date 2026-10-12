@@ -8,11 +8,13 @@
     "start": "node src/index.js",
     "seed": "node src/db/seed.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "mongo:smoke": "node src/db/mongo-smoke.js"
+    "mongo:smoke": "node src/db/mongo-smoke.js",
+    "migrate:logs": "node src/db/migrate-logs.js"
   },
   "dependencies": {
     "@utpost/shared": "^0.1.0",
     "cors": "^2.8.5",
+    "dataloader": "^2.2.3",
     "drizzle-orm": "^0.36.4",
     "express": "^4.21.2",
     "graphql": "^17.0.2",

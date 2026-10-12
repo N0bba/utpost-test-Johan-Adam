@@ -1,28 +1,40 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { get } from '../api'
+<script setup lang="ts">
+import { useQuery } from '@urql/vue'
+import { graphql } from '../gql'
+import { formatKm } from '../lib/tours'
 
-const tours = ref([])
-const loading = ref(true)
-const error = ref(null)
-
-onMounted(async () => {
-  try {
-    tours.value = await get('/tours')
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
+// Turlistan via GraphQL (M5). Via REST hämtade /api/tours ~290 kB med alla mätpunkter för
+// en tabell med fem kolumner; nu ber frågan om det tabellen visar. `user` och `guide` är
+// relationerna som kostade 1 + 50 + 38 databasfrågor i M4 – med DataLoader i API:et kostar
+// hela frågan 4 (se extensions.databasfragor i svaret).
+const ToursDocument = graphql(/* GraphQL */ `
+  query Tours {
+    tours(limit: 50) {
+      id
+      title
+      distanceM
+      user {
+        displayName
+      }
+      guide {
+        title
+      }
+      photos {
+        id
+      }
+    }
   }
-})
+`)
+
+const { data, fetching, error } = useQuery({ query: ToursDocument })
 </script>
 
 <template>
   <div>
     <h1>Turer</h1>
-    <p v-if="loading">Laddar turer…</p>
-    <p v-else-if="error" role="alert">Kunde inte hämta turer: {{ error }}</p>
-    <table v-else class="tours">
+    <p v-if="fetching">Laddar turer…</p>
+    <p v-else-if="error" role="alert">Kunde inte hämta turer: {{ error.message }}</p>
+    <table v-else-if="data" class="tours">
       <thead>
         <tr>
           <th>Tur</th>
@@ -33,13 +45,13 @@ onMounted(async () => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="t in tours" :key="t.id">
+        <tr v-for="t in data.tours" :key="t.id">
           <td>
             <RouterLink :to="`/turer/${t.id}`">{{ t.title }}</RouterLink>
           </td>
-          <td>{{ t.user?.display_name }}</td>
+          <td>{{ t.user.displayName }}</td>
           <td>{{ t.guide ? t.guide.title : '-' }}</td>
-          <td>{{ Math.round(t.distance_m / 100) / 10 }} km</td>
+          <td>{{ formatKm(t.distanceM) }}</td>
           <td>{{ t.photos.length }}</td>
         </tr>
       </tbody>

@@ -11,7 +11,7 @@ Vi ärvde en klient utan ett enda test och ett API vars kontrakt bara fanns i hu
 ## Nivåer
 - **Enhet (Vitest):** funktioner utan Vue i sig – `lib/tours.ts` (höjdmeter, formatering), senare validering och datum. Millisekunder, inga mockar.
 - **Komponent (Vitest + Vue Testing Library):** vyerna. Rendera, fråga som en användare (`getByRole`, `getByLabelText`), interagera med `user-event`. API-modulen mockad.
-- **API (från M5):** integrationstester mot Express med riktig databas i pipelinen. Inte nu.
+- **API (från M5):** integrationstester mot GraphQL-servern med riktig databas, i pipelinen. Inte nu.
 - **E2E:** inte förrän M6. Då ett smoke-test mot staging.
 
 ## Karta: vad testas var
@@ -30,7 +30,7 @@ Vi ärvde en klient utan ett enda test och ett API vars kontrakt bara fanns i hu
 ## Regler
 - En PR mergas bara när pipelinen är grön **och** ny logik har ett test som visar vad den ska göra.
 - En buggfix kommer alltid med ett regressionstest som är rött före fixen. Skuldnumret från `docs/debt.md` står i testnamnet.
-- Vi mockar API:et genom `vi.mock('../api')` i komponenttester. Aldrig `fetch` direkt, aldrig nätverket.
+- Vi mockar API:et genom `vi.mock('../api')` i komponenttester – och sedan M5 `vi.mock('@urql/vue')` för vyer som läser via GraphQL. Aldrig `fetch` direkt, aldrig nätverket.
 - Täckning: inget procentkrav. Ett täckningskrav mäter rader som körts, inte beteende som verifierats – vi hade hellre tio tester som fångar riktiga buggar än 80 % täckning av `console.log`. Vi kör `vitest --coverage` en gång i månaden för att hitta helt otestade filer.
 - Testfiler ligger bredvid koden och heter `<fil>.test.ts`. Testnamn på svenska, i hela meningar: `it('hoppar över mätpunkter utan höjd …')`.
 
